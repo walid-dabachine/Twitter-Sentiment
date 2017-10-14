@@ -2,10 +2,6 @@ spark_stream.pdf
 /bin/
 .cache-main
 .classpath
-.project
-.settings
-project/*
-target/*
 *.DS_Store
 *.aux
 *.lof
