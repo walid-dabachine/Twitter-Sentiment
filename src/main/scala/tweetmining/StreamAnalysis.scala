@@ -16,26 +16,28 @@ import org.apache.spark.streaming.dstream.DStream
 object StreamAnalysis {
   val conf = new SparkConf().setMaster("local[6]").setAppName("Spark batch processing")
   val sc = new SparkContext(conf)
-  val streamingContext = new StreamingContext(sc, Seconds(1))
+  val streamingContext = new StreamingContext(sc, Seconds(5))
   sc.setLogLevel("WARN")
+
   def main(args: Array[String]): Unit = {
     println("Twitter data stream processing")
     val kafkaParams = Map[String, Object](
-      "bootstrap.servers" -> "corfu:9092",
+      "bootstrap.servers" -> "localhost:9092",
       "key.deserializer" -> classOf[StringDeserializer],
       "value.deserializer" -> classOf[StringDeserializer],
       "group.id" -> "twitter-consumer",
       "auto.offset.reset" -> "latest",
       "enable.auto.commit" -> (false: java.lang.Boolean))
 
-    val topics = Array("live_tweets") // "batch_tweets"
-    val tweetStream = KafkaUtils.createDirectStream[String, String](
+    val topics = Array("batch_tweets") // "batch_tweets"
+    val kafkaStream = KafkaUtils.createDirectStream[String, String](
       streamingContext,
       PreferConsistent,
       Subscribe[String, String](topics, kafkaParams))
+    val tweetStream = kafkaStream.map(x => x.value())
+    tweetStream.foreachRDD(rdd => rdd.foreach(println))
 
     //add your code here
-
     streamingContext.start()
     streamingContext.awaitTermination()
   }
